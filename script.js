@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
   var container = document.getElementById("envelope");
   var loader = document.getElementById("loader");
+  var preloaded = {};
 
   // 设置容器样式，确保内部视频能重叠显示
   container.style.position = "relative";
@@ -54,7 +55,11 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (file.type === "image") {
       var img = new Image();
       var promise = new Promise(function(resolve, reject) {
-        img.onload = resolve;
+        img.onload = function() { 
+          // 存入 preloaded 对象
+          preloaded[step] = img;
+          resolve(); 
+        };
         img.onerror = reject;
       });
       img.src = file.src;
@@ -95,7 +100,18 @@ document.addEventListener("DOMContentLoaded", function() {
   var currentStep = 1;
 
   function preloadNext(step) {
-    return loadVideo(inactiveVideo, step);
+    return new Promise(function(resolve, reject) {
+      if (mediaFiles[step].type === "video") {
+        loadVideo(inactiveVideo, step).then(resolve).catch(reject);
+      } else if (mediaFiles[step].type === "image") {
+        // 对于图片，可以直接检查 preloaded 数组中是否已加载
+        if (preloaded[step]) {
+          resolve();
+        } else {
+          reject("图片未预加载");
+        }
+      }
+    });
   }
 
   // 开始播放函数：创建两个视频元素，并加载 step1 到 activeVideo，同时预加载 step2 到 inactiveVideo
@@ -189,6 +205,8 @@ document.addEventListener("DOMContentLoaded", function() {
     if (this !== activeVideo) return; // 仅处理当前 activeVideo 的 ended 事件
     if (currentStep === 2) {
       // 使用预设的 background3 作为过渡背景
+    preloadNext(3).then(function() {
+      console.log("Step3预加载完成")
       var bgImg = document.createElement("img");
       bgImg.src = "images/background3.png"; // 背景图片，用于 step2 到 step3 的过渡
       bgImg.style.position = "absolute";
@@ -198,18 +216,18 @@ document.addEventListener("DOMContentLoaded", function() {
       bgImg.style.height = "100%";
       bgImg.style.objectFit = "contain"; // 或者 cover，根据你需要的效果选择
       bgImg.style.zIndex = 10; // 确保背景图片在视频之上
+      // 同时预加载 step3 到 inactiveVideo 备用
+
       
       // 立即进行切换到 step3
-      currentStep = 3;
-      preloadNext(3).then(function() {
+        currentStep = 3;
         swapVideos();
         playActiveVideo();
+      
         // 同时预加载 step4 到 inactiveVideo 备用
-        setTimeout(function() {
          preloadNext(4).then(function() {
           console.log("Step4预加载完成");
          });
-        }, 1000); // 1000毫秒，根据实际情况调整
         // 切换完成后延时移除背景图片
         setTimeout(function() {
           if (container.contains(bgImg)) {
@@ -218,6 +236,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 100);
       });
     } else if (currentStep === 4) {
+      preloadNext(5).then(function() { 
+        console.log("Step5预加载完成"); 
+      });
       // 使用预设的 background5 作为过渡背景
       var bgImg = document.createElement("img");
       bgImg.src = "images/background5.png"; // 背景图片，用于 step4 到 step5 的过渡
