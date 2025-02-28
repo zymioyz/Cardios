@@ -77,6 +77,11 @@ body, html {
     margin: auto;       /* 居中显示 */
 }
 
+.card-image {
+    transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
+    will-change: opacity, transform;
+  }
+
 /* 加载动画样式 */
 #loader {
     position: absolute;
