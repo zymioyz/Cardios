@@ -126,6 +126,40 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
 
+    function captureLastFrame(video) {
+      var canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL(); // 返回图片数据URL
+    }
+    
+    // 在切换前，比如在 handleEnded 中：
+    if (currentStep === 2) {
+      // 捕获 activeVideo 最后一帧
+      var lastFrameURL = captureLastFrame(activeVideo);
+      // 将其作为背景覆盖在容器上
+      var bgImg = document.createElement("img");
+      bgImg.src = lastFrameURL;
+      bgImg.className = "card-image";
+      bgImg.style.position = "absolute";
+      bgImg.style.top = "0";
+      bgImg.style.left = "0";
+      bgImg.style.width = "100%";
+      bgImg.style.height = "100%";
+      container.appendChild(bgImg);
+      // 然后进行视频切换，待新视频就绪后移除 bgImg
+      swapVideos();
+      playActiveVideo();
+      // 移除背景图片
+      setTimeout(function() {
+        if (container.contains(bgImg)) {
+          container.removeChild(bgImg);
+        }
+      }, 100); // 100ms 后移除，可根据需要调整
+    }
+
     // 为两个视频都绑定 ended 事件（确保只对当前 activeVideo 生效）
     activeVideo.addEventListener("ended", handleEnded);
     inactiveVideo.addEventListener("ended", handleEnded);
