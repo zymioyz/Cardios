@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", function() {
             container.removeChild(bgImg);
           }
         }, 100);
-      }, 100);
+      }, 500);
       });
 
     } else if (currentStep === 4) {
@@ -254,6 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
       bgImg.style.zIndex = 10; // 确保背景图片在视频之上
       
       // 切换到最终的贺卡图片
+      setTimeout(function() {
       currentStep = 5;
       // 为避免破坏视频元素，建议不要清空整个容器，而是将最终图片覆盖到上面
       // 这里我们直接移除两个视频播放器并添加最终图片
@@ -272,6 +273,7 @@ document.addEventListener("DOMContentLoaded", function() {
           container.removeChild(bgImg);
         }
       }, 100);
+    }, 1000)
     }
   }
 });
