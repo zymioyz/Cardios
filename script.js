@@ -94,6 +94,10 @@ document.addEventListener("DOMContentLoaded", function() {
   var activeVideo, inactiveVideo;
   var currentStep = 1;
 
+  function preloadNext(step) {
+    return loadVideo(inactiveVideo, step);
+  }
+
   // 开始播放函数：创建两个视频元素，并加载 step1 到 activeVideo，同时预加载 step2 到 inactiveVideo
   function startPlayback() {
     activeVideo = createVideoElement();
@@ -125,40 +129,6 @@ document.addEventListener("DOMContentLoaded", function() {
         playActiveVideo();
       }
     });
-
-    function captureLastFrame(video) {
-      var canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      var ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      return canvas.toDataURL(); // 返回图片数据URL
-    }
-    
-    // 在切换前，比如在 handleEnded 中：
-    if (currentStep === 2) {
-      // 捕获 activeVideo 最后一帧
-      var lastFrameURL = captureLastFrame(activeVideo);
-      // 将其作为背景覆盖在容器上
-      var bgImg = document.createElement("img");
-      bgImg.src = lastFrameURL;
-      bgImg.className = "card-image";
-      bgImg.style.position = "absolute";
-      bgImg.style.top = "0";
-      bgImg.style.left = "0";
-      bgImg.style.width = "100%";
-      bgImg.style.height = "100%";
-      container.appendChild(bgImg);
-      // 然后进行视频切换，待新视频就绪后移除 bgImg
-      swapVideos();
-      playActiveVideo();
-      // 移除背景图片
-      setTimeout(function() {
-        if (container.contains(bgImg)) {
-          container.removeChild(bgImg);
-        }
-      }, 100); // 100ms 后移除，可根据需要调整
-    }
 
     // 为两个视频都绑定 ended 事件（确保只对当前 activeVideo 生效）
     activeVideo.addEventListener("ended", handleEnded);
@@ -199,8 +169,14 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // swapVideos：交换 activeVideo 与 inactiveVideo 的显示状态
+  function playActiveVideo() {
+    activeVideo.play().catch(function(e) {
+      console.error("播放错误:", e);
+    });
+  }
+  
   function swapVideos() {
+    // 这里采用简单的交换逻辑：隐藏 activeVideo，显示 inactiveVideo，再交换引用
     activeVideo.style.display = "none";
     inactiveVideo.style.display = "block";
     var temp = activeVideo;
@@ -208,40 +184,69 @@ document.addEventListener("DOMContentLoaded", function() {
     inactiveVideo = temp;
   }
 
-  // 播放 activeVideo
-  function playActiveVideo() {
-    activeVideo.play().catch(function(e) {
-      console.error("播放错误:", e);
-    });
-  }
-
-  // preloadNext：将下一个 step 的视频加载到 inactiveVideo中
-  function preloadNext(step) {
-    return loadVideo(inactiveVideo, step);
-  }
-
-  // handleEnded：视频结束后的自动切换逻辑
+  // swapVideos：交换 activeVideo 与 inactiveVideo 的显示状态
   function handleEnded() {
     if (this !== activeVideo) return; // 仅处理当前 activeVideo 的 ended 事件
     if (currentStep === 2) {
+      // 使用预设的 background3 作为过渡背景
+      var bgImg = document.createElement("img");
+      bgImg.src = "images/background3.png"; // 背景图片，用于 step2 到 step3 的过渡
+      bgImg.style.position = "absolute";
+      bgImg.style.top = "0";
+      bgImg.style.left = "0";
+      bgImg.style.width = "100%";
+      bgImg.style.height = "100%";
+      bgImg.style.objectFit = "contain"; // 或者 cover，根据你需要的效果选择
+      bgImg.style.zIndex = 10; // 确保背景图片在视频之上
+      
+      // 立即进行切换到 step3
       currentStep = 3;
       preloadNext(3).then(function() {
         swapVideos();
         playActiveVideo();
-        // 同时预加载 step4 到 inactiveVideo
+        // 同时预加载 step4 到 inactiveVideo 备用
         preloadNext(4).then(function() {
           console.log("Step4预加载完成");
         });
+        // 切换完成后延时移除背景图片
+        setTimeout(function() {
+          if (container.contains(bgImg)) {
+            container.removeChild(bgImg);
+          }
+        }, 100);
       });
     } else if (currentStep === 4) {
+      // 使用预设的 background5 作为过渡背景
+      var bgImg = document.createElement("img");
+      bgImg.src = "images/background5.png"; // 背景图片，用于 step4 到 step5 的过渡
+      bgImg.className = "card-image";
+      bgImg.style.position = "absolute";
+      bgImg.style.top = "0";
+      bgImg.style.left = "0";
+      bgImg.style.width = "100%";
+      bgImg.style.height = "100%";
+      bgImg.style.objectFit = "contain"; // 或者 cover，根据你需要的效果选择
+      bgImg.style.zIndex = 10; // 确保背景图片在视频之上
+      
+      // 切换到最终的贺卡图片
       currentStep = 5;
-      // 最后一步：加载 PNG 图片
-      var img = new Image();
-      img.src = mediaFiles[5].src;
-      img.alt = "最终贺卡";
-      img.className = "card-image";
-      container.innerHTML = "";
-      container.appendChild(img);
+      // 为避免破坏视频元素，建议不要清空整个容器，而是将最终图片覆盖到上面
+      // 这里我们直接移除两个视频播放器并添加最终图片
+      container.removeChild(activeVideo);
+      container.removeChild(inactiveVideo);
+      
+      var finalImg = new Image();
+      finalImg.src = mediaFiles[5].src;
+      finalImg.alt = "最终贺卡";
+      finalImg.className = "card-image";
+      container.appendChild(finalImg);
+      
+      // 移除背景图片（延时移除，保证过渡平滑）
+      setTimeout(function() {
+        if (container.contains(bgImg)) {
+          container.removeChild(bgImg);
+        }
+      }, 100);
     }
   }
 });
