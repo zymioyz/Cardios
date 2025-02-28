@@ -233,8 +233,8 @@ document.addEventListener("DOMContentLoaded", function() {
           if (container.contains(bgImg)) {
             container.removeChild(bgImg);
           }
-        }, 100);
-      }, 100);
+        }, 10);
+      }, 10);
       });
 
     } else if (currentStep === 4) {
@@ -272,8 +272,8 @@ document.addEventListener("DOMContentLoaded", function() {
         if (container.contains(bgImg)) {
           container.removeChild(bgImg);
         }
-      }, 100);
-    }, 100)
+      }, 10);
+    }, 10)
     }
   }
 });
