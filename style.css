@@ -1,0 +1,79 @@
+
+/* 让 body 填满整个屏幕 */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex; /* 使用 flexbox */
+    align-items: center; /* 让内容垂直居中 */
+    justify-content: center; /* 让内容水平居中 */
+    overflow: hidden;  /* 禁止页面滚动 */
+    touch-action: none;  /* 关闭默认手势（更流畅） */
+}
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.page {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+.hidden {
+    display: none;
+}
+
+.envelope {
+    width: 200px;
+    height: 150px;
+    background-color: #ffcc00;
+    position: relative;
+    cursor: pointer;
+}
+
+.envelope:after {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 100px solid transparent;
+    border-right: 100px solid transparent;
+    border-bottom: 75px solid #ff9900;
+    position: absolute;
+    top: -75px;
+    left: 0;
+}
+
+/* 仅在手机端（屏幕宽度小于 768px）生效 */
+@media screen and (max-width: 768px) {
+    .card-image {
+        max-width: 100vw; /* 让图片最大宽度等于屏幕宽度 */
+        max-height: 100vh; /* 让图片最大高度等于屏幕高度 */
+        width: 100%; /* 让宽度自动适应，保持原始比例 */
+        height: auto; /* 让高度自动适应，保持原始比例 */
+        display: block; /* 避免图片周围有额外空隙 */
+        margin: 0 auto; /* 确保水平居中 */
+        position: absolute; /* 让它可以进行上下居中 */
+        object-fit: contain; /* 确保图片完整显示，不被裁剪 */
+    }
+}
+
+.card-image {
+    max-height: 100vh;  /* 让图片高度填满整个浏览器窗口 */
+    height:100%;  /* 让高度自动适应，保持原始比例 */
+    width: auto;        /* 保持原始宽高比 */
+    display: block;     /* 避免图片下面有额外间隙 */
+    margin: auto;       /* 居中显示 */
+}
