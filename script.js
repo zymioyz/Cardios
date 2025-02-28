@@ -218,8 +218,8 @@ document.addEventListener("DOMContentLoaded", function() {
       bgImg.style.zIndex = 10; // 确保背景图片在视频之上
       // 同时预加载 step3 到 inactiveVideo 备用
 
-      
       // 立即进行切换到 step3
+      setTimeout(function() {
         currentStep = 3;
         swapVideos();
         playActiveVideo();
@@ -234,7 +234,9 @@ document.addEventListener("DOMContentLoaded", function() {
             container.removeChild(bgImg);
           }
         }, 100);
+      }, 100);
       });
+
     } else if (currentStep === 4) {
       preloadNext(5).then(function() { 
         console.log("Step5预加载完成"); 
