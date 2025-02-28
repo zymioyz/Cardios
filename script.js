@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function() {
          preloadNext(4).then(function() {
           console.log("Step4预加载完成");
          });
-        }, 100); // 100毫秒，根据实际情况调整
+        }, 1000); // 1000毫秒，根据实际情况调整
         // 切换完成后延时移除背景图片
         setTimeout(function() {
           if (container.contains(bgImg)) {
