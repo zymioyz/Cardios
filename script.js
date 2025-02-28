@@ -205,9 +205,11 @@ document.addEventListener("DOMContentLoaded", function() {
         swapVideos();
         playActiveVideo();
         // 同时预加载 step4 到 inactiveVideo 备用
-        preloadNext(4).then(function() {
+        setTimeout(function() {
+         preloadNext(4).then(function() {
           console.log("Step4预加载完成");
-        });
+         });
+        }, 100); // 100毫秒，根据实际情况调整
         // 切换完成后延时移除背景图片
         setTimeout(function() {
           if (container.contains(bgImg)) {
