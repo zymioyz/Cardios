@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
   var container = document.getElementById("envelope");
   var loader = document.getElementById("loader");
-  var preloaded = {};  // 存储预加载后的媒体元素
+  var preloaded = {};
 
   // 设置容器样式，确保内部视频能重叠显示
   container.style.position = "relative";
@@ -9,18 +9,15 @@ document.addEventListener("DOMContentLoaded", function() {
   container.style.height = "100%";
 
   // 定义媒体文件信息
-  // 注意：这里的 src 保留作参考，实际 HLS 播放时我们会使用 "hls/stepX.m3u8"
   var mediaFiles = {
-    1: { type: "video", src: "hls/step1.m3u8", loop: true },
-    2: { type: "video", src: "hls/step2.m3u8", loop: false },
-    3: { type: "video", src: "hls/step3.m3u8", loop: true },
-    4: { type: "video", src: "hls/step4.m3u8", loop: false },
+    1: { type: "video", src: "videos/step1.mp4", loop: true },
+    2: { type: "video", src: "videos/step2.mp4", loop: false },
+    3: { type: "video", src: "videos/step3.mp4", loop: true },
+    4: { type: "video", src: "videos/step4.mp4", loop: false },
     5: { type: "image", src: "images/step5.png" }
   };
 
-  // -------------------------------
-  // 预加载所有媒体
-  // -------------------------------
+  // 预加载所有媒体，确保播放时不会因加载问题而出现卡顿
   var preloadPromises = [];
   Object.keys(mediaFiles).forEach(function(step) {
     var file = mediaFiles[step];
@@ -31,15 +28,18 @@ document.addEventListener("DOMContentLoaded", function() {
       video.autoplay = false;
       video.playsInline = true;
       video.loop = file.loop;
-      // 不再添加 <source> 元素，此处直接调用 loadVideo() 来加载 HLS
-      var promise = loadVideo(video, step); // 使用新的 loadVideo() 实现 HLS加载
-      preloaded[step] = video;
-      preloadPromises.push(promise);
+      // 不添加到页面，仅用于预加载
+      var source = document.createElement("source");
+      source.type = "video/mp4";
+      source.src = file.src;
+      video.appendChild(source);
+  
     } else if (file.type === "image") {
       var img = new Image();
       var promise = new Promise(function(resolve, reject) {
         img.onload = function() { 
-          preloaded[step] = img; // 存入 preloaded 对象
+          // 存入 preloaded 对象
+          preloaded[step] = img;
           resolve(); 
         };
         img.onerror = reject;
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function() {
   // 以下为重叠视频播放部分（无缝衔接逻辑）
   // -------------------------------
 
-  // 创建视频元素的函数，属性和样式保持一致
+  // 创建视频元素的函数，保证属性和样式一致
   function createVideoElement() {
     var video = document.createElement("video");
     video.muted = true;
@@ -81,12 +81,12 @@ document.addEventListener("DOMContentLoaded", function() {
   var activeVideo, inactiveVideo;
   var currentStep = 1;
 
-  // preloadNext：将下一个 step 的视频加载到 inactiveVideo
   function preloadNext(step) {
     return new Promise(function(resolve, reject) {
       if (mediaFiles[step].type === "video") {
         loadVideo(inactiveVideo, step).then(resolve).catch(reject);
       } else if (mediaFiles[step].type === "image") {
+        // 对于图片，可以直接检查 preloaded 数组中是否已加载
         if (preloaded[step]) {
           resolve();
         } else {
@@ -100,10 +100,9 @@ document.addEventListener("DOMContentLoaded", function() {
   function startPlayback() {
     activeVideo = createVideoElement();
     inactiveVideo = createVideoElement();
-    // 采用常驻DOM方式，仅通过 CSS 切换显示
     activeVideo.style.display = "block";
     inactiveVideo.style.display = "none";
-    container.innerHTML = ""; // 确保容器为空
+    container.innerHTML = ""; // 清空容器
     container.appendChild(activeVideo);
     container.appendChild(inactiveVideo);
     
@@ -129,47 +128,42 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
 
-    // 绑定 ended 事件，确保只处理 activeVideo 的结束事件
+    // 为两个视频都绑定 ended 事件（确保只对当前 activeVideo 生效）
     activeVideo.addEventListener("ended", handleEnded);
     inactiveVideo.addEventListener("ended", handleEnded);
   }
 
-  // 修改后的 loadVideo()：用于加载 HLS 视频
+  // loadVideo：将指定 step 的视频加载到给定的视频元素中（利用媒体文件的 src），并等待 onloadeddata 事件
   function loadVideo(videoElement, step) {
     return new Promise(function(resolve, reject) {
-      // 清空现有内容
       while (videoElement.firstChild) {
         videoElement.removeChild(videoElement.firstChild);
       }
-      // 构造 HLS 流 URL，假设放在 hls 文件夹中
-      var hlsUrl = "hls/step" + step + ".m3u8";
-      // 如果浏览器原生支持 HLS（如 iOS Safari）
-      if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-        videoElement.src = hlsUrl;
-        videoElement.addEventListener('loadedmetadata', function() {
-          videoElement.currentTime = 0;
-          videoElement.pause();
-          resolve();
-        });
-        videoElement.addEventListener('error', function(e) {
-          reject(e);
-        });
-      } else if (typeof Hls !== "undefined" && Hls.isSupported()) {
-        // 使用 hls.js 播放 HLS 流
-        var hls = new Hls();
-        hls.loadSource(hlsUrl);
-        hls.attachMedia(videoElement);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          videoElement.currentTime = 0;
-          videoElement.pause();
-          resolve();
-        });
-        hls.on(Hls.Events.ERROR, function(event, data) {
-          reject(data);
-        });
-      } else {
-        reject("HLS not supported");
+      var source = document.createElement("source");
+      source.type = "video/mp4";
+      if (step === 1) {
+        videoElement.loop = true;
+        source.src = mediaFiles[1].src;
+      } else if (step === 2) {
+        videoElement.loop = false;
+        source.src = mediaFiles[2].src;
+      } else if (step === 3) {
+        videoElement.loop = true;
+        source.src = mediaFiles[3].src;
+      } else if (step === 4) {
+        videoElement.loop = false;
+        source.src = mediaFiles[4].src;
       }
+      videoElement.appendChild(source);
+      videoElement.load();
+      videoElement.onloadeddata = function() {
+        videoElement.currentTime = 0;
+        videoElement.pause();
+        resolve();
+      };
+      videoElement.onerror = function(e) {
+        reject(e);
+      };
     });
   }
 
@@ -180,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   
   function swapVideos() {
-    // 采用仅修改显示方式，不清空容器
+    // 这里采用简单的交换逻辑：隐藏 activeVideo，显示 inactiveVideo，再交换引用
     activeVideo.style.display = "none";
     inactiveVideo.style.display = "block";
     var temp = activeVideo;
@@ -188,73 +182,80 @@ document.addEventListener("DOMContentLoaded", function() {
     inactiveVideo = temp;
   }
 
-  // 自动切换逻辑：视频结束后自动切换步骤
+  // swapVideos：交换 activeVideo 与 inactiveVideo 的显示状态
   function handleEnded() {
-    if (this !== activeVideo) return; // 仅处理 activeVideo 的 ended 事件
+    if (this !== activeVideo) return; // 仅处理当前 activeVideo 的 ended 事件
     if (currentStep === 2) {
-      // step2 结束后，自动切换到 step3
-      // 这里我们可以加入延时以及背景图片过渡
+      // 使用预设的 background3 作为过渡背景
+    preloadNext(3).then(function() {
+      console.log("Step3预加载完成")
       var bgImg = document.createElement("img");
-      bgImg.src = "images/background3.png"; // 预设的 background3
-      bgImg.className = "card-image";
+      bgImg.src = "images/background3.png"; // 背景图片，用于 step2 到 step3 的过渡
       bgImg.style.position = "absolute";
       bgImg.style.top = "0";
       bgImg.style.left = "0";
       bgImg.style.width = "100%";
       bgImg.style.height = "100%";
-      bgImg.style.objectFit = "contain";
-      bgImg.style.zIndex = 10;
-      container.appendChild(bgImg);
-      // 延时后切换
+      bgImg.style.objectFit = "contain"; // 或者 cover，根据你需要的效果选择
+      bgImg.style.zIndex = 10; // 确保背景图片在视频之上
+      // 同时预加载 step3 到 inactiveVideo 备用
+
+      // 立即进行切换到 step3
       setTimeout(function() {
-        preloadNext(3).then(function() {
-          console.log("Step3预加载完成");
-          currentStep = 3;
-          swapVideos();
-          playActiveVideo();
-          // 预加载 step4 到 inactiveVideo
-          preloadNext(4).then(function() {
-            console.log("Step4预加载完成");
-          });
-          setTimeout(function() {
-            if (container.contains(bgImg)) {
-              container.removeChild(bgImg);
-            }
-          }, 100);
-        });
-      }, 50);
-    } else if (currentStep === 4) {
-      // step4 结束后自动切换到最终图片（step5）
-      preloadNext(5).then(function() { 
-        console.log("Step5预加载完成"); 
-      });
-      var bgImg = document.createElement("img");
-      bgImg.src = "images/background5.png"; // 预设的 background5
-      bgImg.className = "card-image";
-      bgImg.style.position = "absolute";
-      bgImg.style.top = "0";
-      bgImg.style.left = "0";
-      bgImg.style.width = "100%";
-      bgImg.style.height = "100%";
-      bgImg.style.objectFit = "contain";
-      bgImg.style.zIndex = 10;
-      container.appendChild(bgImg);
-      setTimeout(function() {
-        currentStep = 5;
-        // 移除视频播放器，直接显示最终图片
-        if (container.contains(activeVideo)) container.removeChild(activeVideo);
-        if (container.contains(inactiveVideo)) container.removeChild(inactiveVideo);
-        var finalImg = new Image();
-        finalImg.src = mediaFiles[5].src;
-        finalImg.alt = "最终贺卡";
-        finalImg.className = "card-image";
-        container.appendChild(finalImg);
+        currentStep = 3;
+        swapVideos();
+        playActiveVideo();
+      
+        // 同时预加载 step4 到 inactiveVideo 备用
+         preloadNext(4).then(function() {
+          console.log("Step4预加载完成");
+         });
+        // 切换完成后延时移除背景图片
         setTimeout(function() {
           if (container.contains(bgImg)) {
             container.removeChild(bgImg);
           }
         }, 100);
-      }, 50);
+      }, 500);
+      });
+
+    } else if (currentStep === 4) {
+      preloadNext(5).then(function() { 
+        console.log("Step5预加载完成"); 
+      });
+      // 使用预设的 background5 作为过渡背景
+      var bgImg = document.createElement("img");
+      bgImg.src = "images/background5.png"; // 背景图片，用于 step4 到 step5 的过渡
+      bgImg.className = "card-image";
+      bgImg.style.position = "absolute";
+      bgImg.style.top = "0";
+      bgImg.style.left = "0";
+      bgImg.style.width = "100%";
+      bgImg.style.height = "100%";
+      bgImg.style.objectFit = "contain"; // 或者 cover，根据你需要的效果选择
+      bgImg.style.zIndex = 10; // 确保背景图片在视频之上
+      
+      // 切换到最终的贺卡图片
+      setTimeout(function() {
+      currentStep = 5;
+      // 为避免破坏视频元素，建议不要清空整个容器，而是将最终图片覆盖到上面
+      // 这里我们直接移除两个视频播放器并添加最终图片
+      container.removeChild(activeVideo);
+      container.removeChild(inactiveVideo);
+      
+      var finalImg = new Image();
+      finalImg.src = mediaFiles[5].src;
+      finalImg.alt = "最终贺卡";
+      finalImg.className = "card-image";
+      container.appendChild(finalImg);
+      
+      // 移除背景图片（延时移除，保证过渡平滑）
+      setTimeout(function() {
+        if (container.contains(bgImg)) {
+          container.removeChild(bgImg);
+        }
+      }, 100);
+    }, 500)
     }
   }
 });
