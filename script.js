@@ -102,9 +102,6 @@ document.addEventListener("DOMContentLoaded", function() {
     var temp = activeVideo;
     activeVideo = inactiveVideo;
     inactiveVideo = temp;
-    setTimeout(function() {
-      activeVideo.addEventListener("click", handleClick);
-    }, 50);
   }
 
   // 点击事件处理：
