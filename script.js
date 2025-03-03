@@ -215,8 +215,8 @@ document.addEventListener("DOMContentLoaded", function() {
           if (container.contains(bgImg)) {
             container.removeChild(bgImg);
           }
-        }, 100);
-      }, 500);
+        }, 500);
+      }, 1000);
       });
 
     } else if (currentStep === 4) {
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (container.contains(bgImg)) {
           container.removeChild(bgImg);
         }
-      }, 100);
+      }, 500);
     }, 1000)
     }
   }
