@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", function() {
   var container = document.getElementById("envelope");
   var loader = document.getElementById("loader");
 
+  // 确保 loader 初始显示（假设你的 HTML 中 loader 已设置为加载 loading.mp4）
+  loader.style.display = "block";
+
   // 设置容器样式
   container.style.position = "relative";
   container.style.width = "100%";
@@ -13,9 +16,6 @@ document.addEventListener("DOMContentLoaded", function() {
     2: { type: "video", src: "videos/step2.mp4", loop: false },
     3: { type: "video", src: "videos/step3.mp4", loop: false }
   };
-
-  // 隐藏 loader
-  loader.style.display = "none";
 
   // 创建 video 元素，保证属性和样式一致
   function createVideoElement() {
@@ -42,7 +42,6 @@ document.addEventListener("DOMContentLoaded", function() {
   const loopStartTime = 4;
   const loopEndTime = 10;
   function handleSegmentLoop() {
-    // 增加日志，检测 timeupdate 事件
     console.log("timeupdate: currentTime =", activeVideo.currentTime);
     if (activeVideo.currentTime >= loopEndTime) {
       console.log("达到 loopEndTime，重置到", loopStartTime);
@@ -115,7 +114,6 @@ document.addEventListener("DOMContentLoaded", function() {
     if (currentStep === 1) {
       currentStep = 2;
       step2LoopActive = false; // 重置标记
-      // 预加载 step2 到 inactiveVideo，然后交换并播放
       preloadNext(2).then(function() {
         swapVideos();
         activeVideo.currentTime = 0;
@@ -132,12 +130,10 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error("预加载step2错误:", e);
       });
     } else if (currentStep === 2) {
-      // 仅在分段循环启动后（step2LoopActive 为 true）才响应进入 step3
       if (!step2LoopActive) {
         console.log("等待 step2 循环部分启动后再点击");
         return;
       }
-      // 进入 step3前移除 step2 分段循环监听器
       activeVideo.removeEventListener("timeupdate", handleSegmentLoop);
       currentStep = 3;
       preloadNext(3).then(function() {
@@ -160,8 +156,9 @@ document.addEventListener("DOMContentLoaded", function() {
     container.appendChild(inactiveVideo);
 
     loadVideo(activeVideo, 1).then(function() {
+      // 隐藏 loader 后开始播放 step1
+      loader.style.display = "none";
       playActiveVideo();
-      // 预加载 step2
       preloadNext(2).then(function() {
         console.log("Step2预加载完成");
       }).catch(function(e) {
