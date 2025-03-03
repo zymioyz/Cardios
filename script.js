@@ -34,6 +34,24 @@ document.addEventListener("DOMContentLoaded", function() {
       source.src = file.src;
       video.appendChild(source);
       
+      // 选择预加载事件：桌面用 canplaythrough，移动端用 loadeddata
+      var isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      var preloadEvent = isMobile ? "loadeddata" : "canplaythrough";
+      
+      var promise = new Promise(function(resolve, reject) {
+        video.addEventListener(preloadEvent, function() {
+          resolve();
+        });
+        video.onerror = function(e) {
+          reject(e);
+        };
+        // 超时处理（例如3秒后自动resolve）
+        setTimeout(function() {
+          resolve();
+        }, 3000);
+      });
+      video.load();
+      preloadPromises.push(promise);
     } else if (file.type === "image") {
       var img = new Image();
       var promise = new Promise(function(resolve, reject) {
