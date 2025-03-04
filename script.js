@@ -130,8 +130,8 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error("预加载step2错误:", e);
       });
     } else if (currentStep === 2) {
-      if (!step2LoopActive) {
-        console.log("等待 step2 循环部分启动后再点击");
+      if (activeVideo.currentTime < 8) {
+        console.log("等待 step2 播放8秒后再点击");
         return;
       }
       activeVideo.removeEventListener("timeupdate", handleSegmentLoop);
