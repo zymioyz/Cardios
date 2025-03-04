@@ -87,7 +87,7 @@ body, html {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 100px; /* 根据需要调整大小 */
+    width: 200px; /* 根据需要调整大小 */
     height: auto; /* 保持视频原比例 */
     z-index: 999;
 }
