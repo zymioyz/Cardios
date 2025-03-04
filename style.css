@@ -82,22 +82,12 @@ body, html {
     will-change: opacity, transform;
   }
 
-/* 加载动画样式 */
-#loader {
+  #loader {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    border: 8px solid #f3f3f3;
-    border-top: 8px solid #3498db;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 1s linear infinite;
+    width: 100px; /* 根据需要调整大小 */
+    height: auto; /* 保持视频原比例 */
     z-index: 999;
-  }
-  
-  @keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-  }
+}
