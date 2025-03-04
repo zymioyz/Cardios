@@ -130,7 +130,8 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error("预加载step2错误:", e);
       });
     } else if (currentStep === 2) {
-      if (activeVideo.currentTime < 8) {
+      // 如果还未进入循环且播放时间小于8秒，则不允许切换
+      if (!step2LoopActive && activeVideo.currentTime < 8) {
         console.log("等待 step2 播放8秒后再点击");
         return;
       }
