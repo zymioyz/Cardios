@@ -42,7 +42,7 @@ loader.addEventListener('transitionend', function() {
     var extraAudio = new Audio("audios/aftercard.mp3");
     extraAudio.preload = "auto"; // 提示浏览器自动加载音频
     extraAudio.loop = true;
-    extraAudio.volume = 0.5;
+    extraAudio.volume = 0.4;
     // 根据用户是否解除静音设置 muted 状态
     extraAudio.muted = !userHasUnmuted;
     extraAudio.load();         // 显式调用加载 
@@ -50,10 +50,10 @@ loader.addEventListener('transitionend', function() {
     console.log("音频预加载完成，可以顺畅播放！");
     });
 
-    function fadeInAudio(audioElement, duration, targetVolume = 0.5) {
+    function fadeInAudio(audioElement, duration, targetVolume = 0.4) {
       // 初始化音量为 0
       audioElement.volume = 0;
-      let stepTime = 50; // 每50毫秒调整一次
+      let stepTime = 200; // 每50毫秒调整一次
       let steps = duration / stepTime;
       let volumeIncrement = targetVolume / steps;
       
