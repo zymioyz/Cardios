@@ -39,15 +39,15 @@ body, html {
     display: none;
 }
 
-.envelope {
-    width: 200px;
-    height: 150px;
+.card {
+    width: 3000px;
+    height: 4000px;
     background-color: #ffffff;
     position: relative;
     cursor: pointer;
 }
 
-.envelope:after {
+.card:after {
     content: "";
     width: 0;
     height: 0;
@@ -80,11 +80,6 @@ body, html {
     display: block;     /* 避免图片下面有额外间隙 */
     margin: auto;       /* 居中显示 */
 }
-
-.card-image {
-    transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
-    will-change: opacity, transform;
-  }
 
   #loader {
     position: absolute;

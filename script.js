@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-  var container = document.getElementById("envelope");
+  var container = document.getElementById("card");
   var loader = document.getElementById('loader');
 loader.addEventListener('transitionend', function() {
   // 可选：增加一点额外延迟
@@ -89,12 +89,6 @@ loader.addEventListener('transitionend', function() {
     video.autoplay = false;
     video.playsInline = true;
     video.setAttribute("playsinline", "true");
-    video.style.position = "absolute";
-    video.style.top = "0";
-    video.style.left = "0";
-    video.style.width = "100%";
-    video.style.height = "100%";
-    video.style.objectFit = "contain";
     video.className = "card-image";
     return video;
   }
